@@ -1,7 +1,8 @@
 import { Department } from '@common/entities/department.entity';
 import { Program } from '@common/entities/program.entity';
-import { Expose, plainToInstance } from 'class-transformer';
+import { Exclude, Expose, plainToInstance } from 'class-transformer';
 
+@Exclude()
 export class ResponseProgramDTO {
     @Expose()
     code: string;
