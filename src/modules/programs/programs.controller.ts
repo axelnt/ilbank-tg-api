@@ -16,6 +16,9 @@ import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
 import { ProgramCreateDTO } from './dtos/create.dto';
 import { ProgramGetByCodeDTO } from './dtos/get-by-code.dto';
+import { ResponseProgramCreateDTO } from './dtos/response-program-create.dto';
+import { ResponseProgramDeleteDTO } from './dtos/response-program-delete.dto';
+import { ResponseProgramDTO } from './dtos/response-program.dto';
 import { ProgramsService } from './programs.service';
 
 @Controller('programs')
@@ -38,23 +41,31 @@ export class ProgramsController {
     async createProgram(
         @Body() programCreateDTO: ProgramCreateDTO,
         @UploadedFile() file: Express.Multer.File,
-    ) {
-        return this.programsService.create(programCreateDTO, file);
+    ): Promise<ResponseProgramCreateDTO> {
+        await this.programsService.create(programCreateDTO, file);
+        return new ResponseProgramCreateDTO();
     }
 
     @Get('/')
-    async getPrograms() {
-        return this.programsService.findAll();
+    async getPrograms(): Promise<ResponseProgramDTO[]> {
+        const programs = await this.programsService.findAll();
+        return ResponseProgramDTO.toDTO(programs);
     }
 
     @Get('/:code')
     async getProgramByCode(@Param() programGetByCodeDTO: ProgramGetByCodeDTO) {
-        return this.programsService.findOne(programGetByCodeDTO.code);
+        const program = await this.programsService.findOne(
+            programGetByCodeDTO.code,
+        );
+        return ResponseProgramDTO.toDTO(program);
     }
 
     @Delete('/:code')
     @UseGuards(AuthGuard)
-    async deleteProgram(@Param() programGetByCodeDTO: ProgramGetByCodeDTO) {
-        return this.programsService.delete(programGetByCodeDTO.code);
+    async deleteProgram(
+        @Param() programGetByCodeDTO: ProgramGetByCodeDTO,
+    ): Promise<ResponseProgramDeleteDTO> {
+        await this.programsService.delete(programGetByCodeDTO.code);
+        return new ResponseProgramDeleteDTO();
     }
 }
