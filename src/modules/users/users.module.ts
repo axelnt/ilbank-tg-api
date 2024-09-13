@@ -1,14 +1,15 @@
+import { EncryptionService } from '@auth/services/encryption.service';
+import { ConfigurationModule } from '@configuration/configuration.module';
 import { User } from '@modules/common/entities/user.entity';
-import { ConfigurationService } from '@modules/configuration/configuration.service';
 import { Module } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersController } from './users.controller';
+import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User])],
-    providers: [UsersService, ConfigurationService, JwtService],
+    imports: [TypeOrmModule.forFeature([User]), ConfigurationModule, JwtModule],
+    providers: [UsersService, EncryptionService],
     controllers: [UsersController],
     exports: [UsersService],
 })

@@ -1,8 +1,13 @@
+import { EncryptionService } from '@auth/services/encryption.service';
 import { User } from '@modules/common/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserCreateDTO } from '@users/dtos/create.dto';
-import { ResponseUsersDTO } from '@users/dtos/response-users.dto';
+import {
+    UserAlreadyExistsException,
+    UserNotFoundException,
+    UsersNotFoundException,
+} from '@users/users.exceptions';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -10,19 +15,30 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+        private readonly encryptionService: EncryptionService,
     ) {}
 
     async findAll(): Promise<User[]> {
         try {
-            return this.usersRepository.find();
+            const users = await this.usersRepository.find();
+
+            return users;
         } catch (error) {
-            throw error;
+            throw new UsersNotFoundException();
         }
     }
 
     async findOne(uuid: string): Promise<User> {
         try {
-            return this.usersRepository.findOne({ where: { uuid } });
+            const user = await this.usersRepository.findOne({
+                where: { uuid },
+            });
+
+            if (!user) {
+                throw new UserNotFoundException(uuid);
+            }
+
+            return user;
         } catch (error) {
             throw error;
         }
@@ -30,46 +46,51 @@ export class UsersService {
 
     async findOneWithUsername(username: string): Promise<User> {
         try {
-            return this.usersRepository.findOne({
+            const user = await this.usersRepository.findOne({
                 where: { username },
             });
-        } catch (error) {
-            throw error;
-        }
-    }
 
-    async getUserPassword(username: string): Promise<User> {
-        try {
-            return this.usersRepository.findOne({
-                where: { username },
-                select: ['password'],
-            });
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    async create(userCreateDTO: UserCreateDTO): Promise<User> {
-        try {
-            if (await this.findOneWithUsername(userCreateDTO.username)) {
-                throw new Error('Username already exists');
+            if (!user) {
+                throw new UserNotFoundException(username);
             }
 
-            return this.usersRepository.create(userCreateDTO);
+            return user;
+        } catch (error) {
+            throw new UserNotFoundException(username);
+        }
+    }
+
+    async create(userCreateDTO: UserCreateDTO): Promise<void> {
+        try {
+            if (await this.findOneWithUsername(userCreateDTO.username)) {
+                throw new UserAlreadyExistsException(userCreateDTO.username);
+            }
+
+            const hashedPassword = await this.encryptionService.hash(
+                userCreateDTO.password,
+            );
+            userCreateDTO.password = hashedPassword;
+
+            const user = this.usersRepository.create(userCreateDTO);
+
+            await this.usersRepository.save(user);
+
+            return;
         } catch (error) {
             throw error;
         }
     }
 
-    async delete(userDeleteDTO: UserDeleteDTO): Promise<User> {
+    async delete(uuid: string): Promise<void> {
         try {
-            const user = await this.findOne(userDeleteDTO.uuid);
+            const user = await this.findOne(uuid);
 
             if (!user) {
                 throw new Error('User not found');
             }
 
-            return this.usersRepository.remove(user);
+            await this.usersRepository.remove(user);
+            return;
         } catch (error) {
             throw error;
         }
