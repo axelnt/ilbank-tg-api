@@ -12,9 +12,6 @@ import {
     DirectorateParentNotFoundException,
     DirectoratesNotFoundException,
 } from './directorates.exception';
-import { ResponseDirectorateDeleteDTO } from './dtos/response-directorate-delete.dto';
-import { ResponseDirectorateDTO } from './dtos/response-directorate.dto';
-import { ResponseDirectoratesDTO } from './dtos/response-directorates.dto';
 
 @Injectable()
 export class DirectoratesService {
@@ -23,17 +20,20 @@ export class DirectoratesService {
         private directoratesRepository: Repository<Directorate>,
     ) {}
 
-    async findAll(): Promise<ResponseDirectoratesDTO> {
+    async findAll(): Promise<Directorate[]> {
         try {
             const directorates = await this.directoratesRepository.find({
                 where: { deleted: false },
+                relations: ['children', 'parent'],
             });
 
             if (!directorates.length) {
                 throw new DirectoratesNotFoundException();
             }
 
-            return new ResponseDirectoratesDTO(directorates);
+            console.log(directorates);
+
+            return directorates;
         } catch (error) {
             throw error;
         }
@@ -55,7 +55,7 @@ export class DirectoratesService {
         }
     }
 
-    async findOne(uuid: string): Promise<ResponseDirectorateDTO> {
+    async findOne(uuid: string): Promise<Directorate> {
         try {
             const directorate = await this.directoratesRepository.findOne({
                 where: { uuid, deleted: false },
@@ -71,9 +71,23 @@ export class DirectoratesService {
         }
     }
 
-    async create(
-        directorateCreateDTO: DirectorateCreateDTO,
-    ): Promise<ResponseDirectorateDTO> {
+    async findOneWithName(name: string): Promise<Directorate> {
+        try {
+            const directorate = await this.directoratesRepository.findOne({
+                where: { name, deleted: false },
+            });
+
+            if (!directorate) {
+                throw new DirectorateNotFoundException(name);
+            }
+
+            return directorate;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async create(directorateCreateDTO: DirectorateCreateDTO): Promise<void> {
         try {
             let parent: Directorate = null;
             if (directorateCreateDTO.parent) {
@@ -119,10 +133,7 @@ export class DirectoratesService {
             });
 
             try {
-                const savedDirectorate =
-                    await this.directoratesRepository.save(directorate);
-
-                return new ResponseDirectorateDTO(savedDirectorate);
+                await this.directoratesRepository.save(directorate);
             } catch (error) {
                 throw new DirectorateCreateException();
             }
@@ -131,10 +142,7 @@ export class DirectoratesService {
         }
     }
 
-    async delete(
-        uuid: string,
-        soft: boolean = true,
-    ): Promise<ResponseDirectorateDeleteDTO> {
+    async delete(uuid: string, soft: boolean = true): Promise<void> {
         try {
             const directorate = await this.directoratesRepository.findOne({
                 where: { uuid, deleted: false },
@@ -154,26 +162,8 @@ export class DirectoratesService {
             } else {
                 await this.directoratesRepository.remove(directorate);
             }
-
-            return new ResponseDirectorateDeleteDTO();
         } catch (error) {
             throw new DirectorateDeleteException(uuid);
-        }
-    }
-
-    async findOneWithName(name: string): Promise<ResponseDirectorateDTO> {
-        try {
-            const directorate = await this.directoratesRepository.findOne({
-                where: { name, deleted: false },
-            });
-
-            if (!directorate) {
-                throw new DirectorateNotFoundException(name);
-            }
-
-            return directorate;
-        } catch (error) {
-            throw error;
         }
     }
 }
