@@ -16,7 +16,7 @@ export class AuthService {
     async login(loginDto: AuthLoginDTO): Promise<AuthResponseLoginDTO> {
         const { username, password } = loginDto;
 
-        const existingUser = await this.userService.findUserPassword(username);
+        const existingUser = await this.userService.getUserPassword(username);
 
         if (
             !existingUser ||

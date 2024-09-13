@@ -38,7 +38,7 @@ export class UsersService {
         }
     }
 
-    async findUserPassword(username: string): Promise<User> {
+    async getUserPassword(username: string): Promise<User> {
         try {
             return this.usersRepository.findOne({
                 where: { username },
