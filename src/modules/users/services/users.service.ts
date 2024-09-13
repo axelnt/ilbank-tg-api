@@ -20,6 +20,12 @@ export class UsersService {
         private readonly encryptionService: EncryptionService,
     ) {}
 
+    /**
+     * Retrieves all users from the repository.
+     *
+     * @returns {Promise<User[]>} A promise that resolves to an array of User objects.
+     * @throws {UsersNotFoundException} Throws an exception if no users are found.
+     */
     async findAll(): Promise<User[]> {
         try {
             const users = await this.usersRepository.find();
@@ -30,6 +36,14 @@ export class UsersService {
         }
     }
 
+    /**
+     * Retrieves a user by their unique identifier (UUID).
+     *
+     * @param uuid - The unique identifier of the user to be retrieved.
+     * @returns A promise that resolves to the User object if found.
+     * @throws UserNotFoundException if no user is found with the provided UUID.
+     * @throws Error if there is an issue during the retrieval process.
+     */
     async findOne(uuid: string): Promise<User> {
         try {
             const user = await this.usersRepository.findOne({
@@ -46,6 +60,13 @@ export class UsersService {
         }
     }
 
+    /**
+     * Finds a user by their username.
+     *
+     * @param username - The username of the user to find.
+     * @returns A promise that resolves to the User object if found.
+     * @throws UserNotFoundException if no user is found with the given username.
+     */
     async findOneWithUsername(username: string): Promise<User> {
         try {
             const user = await this.usersRepository.findOne({
@@ -62,6 +83,15 @@ export class UsersService {
         }
     }
 
+    /**
+     * Creates a new user in the system.
+     *
+     * @param userCreateDTO - The data transfer object containing user details for creation.
+     * @throws UserAlreadyExistsException - If a user with the provided username already exists.
+     * @throws UsernameInvalidException - If the provided username does not meet the required format.
+     * @throws PasswordInvalidException - If the provided password does not meet the required strength criteria.
+     * @returns A promise that resolves to void upon successful user creation.
+     */
     async create(userCreateDTO: UserCreateDTO): Promise<void> {
         try {
             try {
@@ -105,12 +135,19 @@ export class UsersService {
         }
     }
 
+    /**
+     * Deletes a user by their unique identifier (UUID).
+     *
+     * @param uuid - The unique identifier of the user to be deleted.
+     * @throws UserNotFoundException - If no user is found with the provided UUID.
+     * @returns A promise that resolves to void.
+     */
     async delete(uuid: string): Promise<void> {
         try {
             const user = await this.findOne(uuid);
 
             if (!user) {
-                throw new Error('User not found');
+                throw new UserNotFoundException(uuid);
             }
 
             await this.usersRepository.remove(user);

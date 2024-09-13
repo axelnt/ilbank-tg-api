@@ -27,6 +27,12 @@ export class ProgramsService {
         private directoratesService: DirectoratesService,
     ) {}
 
+    /**
+     * Retrieves all non-deleted programs from the repository.
+     *
+     * @returns {Promise<Program[]>} A promise that resolves to an array of Program objects.
+     * @throws {Error} Throws an error if the retrieval fails.
+     */
     async findAll(): Promise<Program[]> {
         try {
             const programs = await this.programRepository.find({
@@ -39,6 +45,14 @@ export class ProgramsService {
         }
     }
 
+    /**
+     * Retrieves a program by its unique code.
+     *
+     * @param code - The unique code of the program to be retrieved.
+     * @returns A promise that resolves to the found Program object.
+     * @throws ProgramNotFoundWithCodeException - If no program is found with the given code.
+     * @throws Error - If an unexpected error occurs during the retrieval process.
+     */
     async findOne(code: string): Promise<Program> {
         try {
             const program = await this.programRepository.findOne({
@@ -55,6 +69,13 @@ export class ProgramsService {
         }
     }
 
+    /**
+     * Retrieves a program by its name.
+     *
+     * @param name - The name of the program to search for.
+     * @returns A promise that resolves to the found Program.
+     * @throws ProgramNotFoundWithNameException - If no program with the specified name exists and is not marked as deleted.
+     */
     async findOneWithName(name: string): Promise<Program> {
         try {
             const program = await this.programRepository.findOne({
@@ -71,6 +92,18 @@ export class ProgramsService {
         }
     }
 
+    /**
+     * Creates a new program with the specified details and file.
+     *
+     * @param programCreateDTO - The data transfer object containing program details.
+     * @param file - The file associated with the program, uploaded via Multer.
+     * @returns A promise that resolves to a boolean indicating the success of the operation.
+     * @throws ProgramNameConflictException - If a program with the same name already exists.
+     * @throws DepartmentsNotFoundException - If no departments are found based on the provided IDs.
+     * @throws DirectoratesNotFoundException - If no directorates are found based on the provided IDs.
+     * @throws FileNotFoundException - If the uploaded file is missing or has no filename.
+     * @throws ProgramCreateException - If there is an error saving the program to the repository.
+     */
     async create(
         programCreateDTO: ProgramCreateDTO,
         file: Express.Multer.File,
@@ -92,7 +125,7 @@ export class ProgramsService {
                 }
             }
 
-            const departments = await this.departmentsService.findMany(
+            const departments = await this.departmentsService.findByUUIDs(
                 programCreateDTO.departments,
             );
 
@@ -100,7 +133,7 @@ export class ProgramsService {
                 throw new DepartmentsNotFoundException();
             }
 
-            const directorates = await this.directoratesService.findMany(
+            const directorates = await this.directoratesService.findByUUIDs(
                 programCreateDTO.directorates,
             );
 
@@ -148,6 +181,17 @@ export class ProgramsService {
         }
     }
 
+    /**
+     * Deletes a program by its code.
+     *
+     * @param code - The unique code of the program to be deleted.
+     * @param soft - A boolean indicating whether to perform a soft delete (default is true).
+     *               If true, the program will be marked as deleted without removing it from the database.
+     *               If false, the program will be permanently removed from the database.
+     * @returns A promise that resolves to true if the deletion was successful.
+     * @throws ProgramNotFoundWithCodeException - If no program is found with the given code.
+     * @throws ProgramDeleteException - If an error occurs during the deletion process.
+     */
     async delete(code: string, soft: boolean = true): Promise<boolean> {
         try {
             const program = await this.programRepository.findOne({
@@ -171,6 +215,14 @@ export class ProgramsService {
         }
     }
 
+    /**
+     * Retrieves the next program code based on the specified process type.
+     *
+     * @param {boolean} [processBased=false] - Indicates whether the code should be for process-based programs.
+     * @returns {Promise<string>} A promise that resolves to the next program code in the format of 'SBxxxx' or 'BBxxxx'.
+     *
+     * @throws {Error} Throws an error if there is an issue retrieving the program codes from the repository.
+     */
     private async getNextCode(processBased: boolean = false): Promise<string> {
         try {
             const prefix = processBased ? 'SB' : 'BB';
