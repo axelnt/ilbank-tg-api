@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import { BeforeInsert, Column, Entity, PrimaryColumn } from 'typeorm';
 import { ulid } from 'ulid';
 import { v4 as uuid } from 'uuid';
@@ -8,7 +7,6 @@ export class User {
     /**
      * Unique identifier for the user. Uses ULID(Universally Unique Lexicographically Sortable Identifier).
      */
-    @Exclude()
     @PrimaryColumn()
     id: string;
 
@@ -27,7 +25,7 @@ export class User {
     /**
      * The user's password.
      */
-    @Column({ unique: true, select: false })
+    @Column({ unique: true })
     password: string;
 
     /**
