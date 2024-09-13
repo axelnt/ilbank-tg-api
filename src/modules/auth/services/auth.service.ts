@@ -1,7 +1,6 @@
 import { UsersService } from '@modules/users/services/users.service';
 import { Injectable } from '@nestjs/common';
 import { AuthLoginDTO } from '../dtos/login.dto';
-import { AuthResponseLoginDTO } from '../dtos/response-login.dto';
 import { EncryptionService } from './encryption.service';
 import { TokenService } from './token.service';
 
@@ -13,10 +12,11 @@ export class AuthService {
         private readonly tokenService: TokenService,
     ) {}
 
-    async login(loginDto: AuthLoginDTO): Promise<AuthResponseLoginDTO> {
+    async login(loginDto: AuthLoginDTO): Promise<string> {
         const { username, password } = loginDto;
 
-        const existingUser = await this.userService.getUserPassword(username);
+        const existingUser =
+            await this.userService.findOneWithUsername(username);
 
         if (
             !existingUser ||
@@ -30,7 +30,7 @@ export class AuthService {
             username: existingUser.username,
         });
 
-        return { token };
+        return token;
     }
 
     private async validatePassword(
