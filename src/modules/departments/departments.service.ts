@@ -10,9 +10,6 @@ import {
     DepartmentsNotFoundException,
 } from './departments.exceptions';
 import { DepartmentCreateDTO } from './dtos/create.dto';
-import { ResponseDepartmentDeleteDTO } from './dtos/response-department-delete.dto';
-import { ResponseDepartmentDTO } from './dtos/response-department.dto';
-import { ResponseDepartmentsDTO } from './dtos/response-departments.dto';
 
 @Injectable()
 export class DepartmentsService {
@@ -21,7 +18,7 @@ export class DepartmentsService {
         private departmentsRepository: Repository<Department>,
     ) {}
 
-    async findAll(): Promise<ResponseDepartmentsDTO> {
+    async findAll(): Promise<Department[]> {
         try {
             const departments = await this.departmentsRepository.find({
                 where: { deleted: false },
@@ -31,7 +28,7 @@ export class DepartmentsService {
                 throw new DepartmentsNotFoundException();
             }
 
-            return new ResponseDepartmentsDTO(departments);
+            return departments;
         } catch (error) {
             throw error;
         }
@@ -53,7 +50,7 @@ export class DepartmentsService {
         }
     }
 
-    async findOne(uuid: string): Promise<ResponseDepartmentDTO> {
+    async findOne(uuid: string): Promise<Department> {
         try {
             const department = await this.departmentsRepository.findOne({
                 where: { uuid, deleted: false },
@@ -63,15 +60,29 @@ export class DepartmentsService {
                 throw new DepartmentNotFoundException(uuid);
             }
 
-            return new ResponseDepartmentDTO(department);
+            return department;
         } catch (error) {
             throw error;
         }
     }
 
-    async create(
-        departmentCreateDTO: DepartmentCreateDTO,
-    ): Promise<ResponseDepartmentDTO> {
+    async findOneWithName(name: string): Promise<Department> {
+        try {
+            const department = await this.departmentsRepository.findOne({
+                where: { name, deleted: false },
+            });
+
+            if (!department) {
+                throw new DepartmentNotFoundException(name);
+            }
+
+            return department;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async create(departmentCreateDTO: DepartmentCreateDTO): Promise<void> {
         try {
             try {
                 const existingDepartment = await this.findOneWithName(
@@ -94,10 +105,9 @@ export class DepartmentsService {
             });
 
             try {
-                const savedDepartment =
-                    await this.departmentsRepository.save(department);
+                await this.departmentsRepository.save(department);
 
-                return new ResponseDepartmentDTO(savedDepartment);
+                return;
             } catch (error) {
                 throw new DepartmentCreateException();
             }
@@ -106,10 +116,7 @@ export class DepartmentsService {
         }
     }
 
-    async delete(
-        uuid: string,
-        soft: boolean = true,
-    ): Promise<ResponseDepartmentDeleteDTO> {
+    async delete(uuid: string, soft: boolean = true): Promise<void> {
         try {
             const department = await this.departmentsRepository.findOne({
                 where: { uuid, deleted: false },
@@ -126,25 +133,9 @@ export class DepartmentsService {
                 await this.departmentsRepository.remove(department);
             }
 
-            return new ResponseDepartmentDeleteDTO();
+            return;
         } catch (error) {
             throw new DepartmentDeleteException(uuid);
-        }
-    }
-
-    async findOneWithName(name: string): Promise<Department> {
-        try {
-            const department = await this.departmentsRepository.findOne({
-                where: { name, deleted: false },
-            });
-
-            if (!department) {
-                throw new DepartmentNotFoundException(name);
-            }
-
-            return department;
-        } catch (error) {
-            throw error;
         }
     }
 }

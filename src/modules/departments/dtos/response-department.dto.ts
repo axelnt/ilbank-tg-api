@@ -1,17 +1,19 @@
 import { Department } from '@common/entities/department.entity';
-import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { Exclude, Expose, plainToInstance } from 'class-transformer';
 
+@Exclude()
 export class ResponseDepartmentDTO {
+    @Expose()
     uuid: string;
+
+    @Expose()
     name: string;
 
-    constructor(department: Department) {
-        this.uuid = department.uuid;
-        this.name = department.name;
-    }
-
-    static toEntity(dto: ResponseDepartmentDTO): Department {
-        const data = instanceToPlain(dto);
-        return plainToInstance(Department, data);
+    static toDTO<T extends Department | Department[]>(
+        department: T,
+    ): T extends Department[]
+        ? ResponseDepartmentDTO[]
+        : ResponseDepartmentDTO {
+        return plainToInstance(ResponseDepartmentDTO, department) as any;
     }
 }
