@@ -1,7 +1,12 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Expose, plainToInstance } from 'class-transformer';
 
-export class AuthResponseLoginDTO {
-    @IsString()
-    @IsNotEmpty()
+export class ResponseLoginDTO {
+    @Expose()
     token: string;
+
+    static toDTO(token: string): ResponseLoginDTO {
+        return plainToInstance(ResponseLoginDTO, {
+            token,
+        });
+    }
 }
