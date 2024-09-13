@@ -77,9 +77,9 @@ export class ProgramsService {
     ): Promise<boolean> {
         try {
             try {
-                const existingProgram = await this.programRepository.findOne({
-                    where: { name: programCreateDTO.name, deleted: false },
-                });
+                const existingProgram = await this.findOneWithName(
+                    programCreateDTO.name,
+                );
 
                 if (existingProgram) {
                     throw new ProgramNameConflictException(
@@ -123,7 +123,6 @@ export class ProgramsService {
             /**
              * Generating the program code
              */
-
             program.code = await this.getNextCode(
                 programCreateDTO.processBased,
             );
