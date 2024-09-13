@@ -9,3 +9,7 @@ export class ConflictError extends Error {
 export class InternalServerError extends Error {
     name: 'InternalServerErrror';
 }
+
+export class BadRequestError extends Error {
+    name: 'BadRequestError';
+}

@@ -4,7 +4,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserCreateDTO } from '@users/dtos/create.dto';
 import {
+    PasswordInvalidException,
     UserAlreadyExistsException,
+    UsernameInvalidException,
     UserNotFoundException,
     UsersNotFoundException,
 } from '@users/users.exceptions';
@@ -62,10 +64,32 @@ export class UsersService {
 
     async create(userCreateDTO: UserCreateDTO): Promise<void> {
         try {
-            if (await this.findOneWithUsername(userCreateDTO.username)) {
-                throw new UserAlreadyExistsException(userCreateDTO.username);
+            try {
+                const existingUser = await this.findOneWithUsername(
+                    userCreateDTO.username,
+                );
+                if (existingUser) {
+                    throw new UserAlreadyExistsException(
+                        userCreateDTO.username,
+                    );
+                }
+            } catch (error) {}
+
+            if (
+                userCreateDTO.username.match(
+                    /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/gim,
+                ) === null
+            ) {
+                throw new UsernameInvalidException();
             }
 
+            if (
+                userCreateDTO.password.match(
+                    /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm,
+                ) === null
+            ) {
+                throw new PasswordInvalidException();
+            }
             const hashedPassword = await this.encryptionService.hash(
                 userCreateDTO.password,
             );
