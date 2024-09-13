@@ -1,4 +1,10 @@
 import { AuthGuard } from '@auth/auth.guard';
+import { ProgramCreateDTO } from '@modules/programs/dtos/create.dto';
+import { ProgramGetByCodeDTO } from '@modules/programs/dtos/get-by-code.dto';
+import { ResponseProgramCreateDTO } from '@modules/programs/dtos/response-program-create.dto';
+import { ResponseProgramDeleteDTO } from '@modules/programs/dtos/response-program-delete.dto';
+import { ResponseProgramDTO } from '@modules/programs/dtos/response-program.dto';
+import { ProgramsService } from '@modules/programs/programs.service';
 import {
     Body,
     Controller,
@@ -14,12 +20,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
-import { ProgramCreateDTO } from './dtos/create.dto';
-import { ProgramGetByCodeDTO } from './dtos/get-by-code.dto';
-import { ResponseProgramCreateDTO } from './dtos/response-program-create.dto';
-import { ResponseProgramDeleteDTO } from './dtos/response-program-delete.dto';
-import { ResponseProgramDTO } from './dtos/response-program.dto';
-import { ProgramsService } from './programs.service';
 
 @Controller('programs')
 export class ProgramsController {

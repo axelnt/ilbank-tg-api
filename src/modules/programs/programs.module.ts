@@ -5,7 +5,7 @@ import { DirectoratesModule } from '@modules/directorates/directorates.module';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProgramsController } from './programs.controller';
+import { ProgramsController } from './controllers/programs.controller';
 import { ProgramsService } from './programs.service';
 
 @Module({
