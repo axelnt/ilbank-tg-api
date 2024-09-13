@@ -10,10 +10,6 @@ import { ProgramCreateDTO } from '@programs/dtos/create.dto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Repository } from 'typeorm';
-import { ResponseProgramCreateDTO } from './dtos/response-program-create.dto';
-import { ResponseProgramDeleteDTO } from './dtos/response-program-delete.dto';
-import { ResponseProgramDTO } from './dtos/response-program.dto';
-import { ResponseProgramsDTO } from './dtos/response-programs.dto';
 import {
     ProgramCreateException,
     ProgramDeleteException,
@@ -31,19 +27,19 @@ export class ProgramsService {
         private directoratesService: DirectoratesService,
     ) {}
 
-    async findAll(): Promise<ResponseProgramsDTO> {
+    async findAll(): Promise<Program[]> {
         try {
             const programs = await this.programRepository.find({
                 where: { deleted: false },
             });
 
-            return new ResponseProgramsDTO(programs);
+            return programs;
         } catch (error) {
             throw error;
         }
     }
 
-    async findOne(code: string): Promise<ResponseProgramDTO> {
+    async findOne(code: string): Promise<Program> {
         try {
             const program = await this.programRepository.findOne({
                 where: { code, deleted: false },
@@ -59,7 +55,7 @@ export class ProgramsService {
         }
     }
 
-    async findOneWithName(name: string): Promise<ResponseProgramDTO> {
+    async findOneWithName(name: string): Promise<Program> {
         try {
             const program = await this.programRepository.findOne({
                 where: { name, deleted: false },
@@ -78,7 +74,7 @@ export class ProgramsService {
     async create(
         programCreateDTO: ProgramCreateDTO,
         file: Express.Multer.File,
-    ): Promise<ResponseProgramCreateDTO> {
+    ): Promise<boolean> {
         try {
             try {
                 const existingProgram = await this.programRepository.findOne({
@@ -144,9 +140,8 @@ export class ProgramsService {
 
             try {
                 await this.programRepository.save(program);
-                return new ResponseProgramCreateDTO();
+                return true;
             } catch (error) {
-                console.log(error);
                 throw new ProgramCreateException();
             }
         } catch (error) {
@@ -154,10 +149,7 @@ export class ProgramsService {
         }
     }
 
-    async delete(
-        code: string,
-        soft: boolean = true,
-    ): Promise<ResponseProgramDeleteDTO> {
+    async delete(code: string, soft: boolean = true): Promise<boolean> {
         try {
             const program = await this.programRepository.findOne({
                 where: { code: code, deleted: false },
@@ -174,7 +166,7 @@ export class ProgramsService {
                 await this.programRepository.remove(program);
             }
 
-            return new ResponseProgramDeleteDTO();
+            return true;
         } catch (error) {
             throw new ProgramDeleteException(code);
         }
