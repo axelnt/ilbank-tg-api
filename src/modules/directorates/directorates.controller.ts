@@ -12,36 +12,43 @@ import {
 import { DirectoratesService } from './directorates.service';
 import { DirectorateDeleteDTO } from './dtos/delete.dto';
 import { DirectorateGetByIdDTO } from './dtos/get-by-code.dto';
+import { ResponseDirectorateDTO } from './dtos/response-directorate.dto';
 
 @Controller('directorates')
 export class DirectoratesController {
     constructor(private readonly directoratesService: DirectoratesService) {}
 
-    @Post('/')
-    @UseGuards(AuthGuard)
-    async createDirectorate(
-        @Body() directorateCreateDTO: DirectorateCreateDTO,
-    ) {
-        return this.directoratesService.create(directorateCreateDTO);
-    }
-
     @Get('/')
-    async getDirectorates() {
-        return this.directoratesService.findAll();
+    async getDirectorates(): Promise<ResponseDirectorateDTO[]> {
+        const directorates = await this.directoratesService.findAll();
+        return ResponseDirectorateDTO.toDTO(directorates);
     }
 
     @Get('/:uuid')
     async getDirectorate(
         @Param() directorateGetByCodeDTO: DirectorateGetByIdDTO,
-    ) {
-        return this.directoratesService.findOne(directorateGetByCodeDTO.uuid);
+    ): Promise<ResponseDirectorateDTO> {
+        const directorate = await this.directoratesService.findOne(
+            directorateGetByCodeDTO.uuid,
+        );
+        return ResponseDirectorateDTO.toDTO(directorate);
+    }
+
+    @Post('/')
+    @UseGuards(AuthGuard)
+    async createDirectorate(
+        @Body() directorateCreateDTO: DirectorateCreateDTO,
+    ): Promise<void> {
+        await this.directoratesService.create(directorateCreateDTO);
+        return;
     }
 
     @Delete('/:uuid')
     @UseGuards(AuthGuard)
     async deleteDirectorate(
         @Param() directorateDeleteDTO: DirectorateDeleteDTO,
-    ) {
-        return this.directoratesService.delete(directorateDeleteDTO.uuid);
+    ): Promise<void> {
+        await this.directoratesService.delete(directorateDeleteDTO.uuid);
+        return;
     }
 }

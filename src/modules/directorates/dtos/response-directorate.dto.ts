@@ -1,23 +1,48 @@
 import { Directorate } from '@common/entities/directorate.entity';
-import { Exclude, instanceToPlain, plainToInstance } from 'class-transformer';
+import { Exclude, Expose, plainToInstance, Type } from 'class-transformer';
 
+@Exclude()
 export class ResponseDirectorateDTO {
+    @Expose()
     uuid: string;
+
+    @Expose()
     name: string;
 
-    @Exclude()
+    @Expose()
+    @Type(() => ResponseDirectorateDTO)
+    children: ResponseDirectorateDTO[];
+
+    @Expose()
+    @Type(() => ResponseDirectorateDTO)
     parent: ResponseDirectorateDTO;
 
-    constructor(directorate: Directorate) {
-        this.uuid = directorate.uuid;
-        this.name = directorate.name;
-        this.parent = directorate.parent
-            ? new ResponseDirectorateDTO(directorate.parent)
-            : null;
+    private static clean(dto: ResponseDirectorateDTO): void {
+        if (!dto.parent) {
+            delete dto.parent;
+        }
+
+        if (!dto.children || dto.children.length === 0) {
+            delete dto.children;
+        }
     }
 
-    static toEntity(dto: ResponseDirectorateDTO): Directorate {
-        const data = instanceToPlain(dto);
-        return plainToInstance(Directorate, data);
+    // Main toDTO method
+    static toDTO<T extends Directorate | Directorate[]>(
+        directorate: T,
+    ): T extends Directorate[]
+        ? ResponseDirectorateDTO[]
+        : ResponseDirectorateDTO {
+        const dto = plainToInstance(ResponseDirectorateDTO, directorate);
+
+        if (Array.isArray(dto)) {
+            dto.forEach((d) => this.clean(d));
+        } else {
+            this.clean(dto as ResponseDirectorateDTO);
+        }
+
+        return dto as T extends Directorate[]
+            ? ResponseDirectorateDTO[]
+            : ResponseDirectorateDTO;
     }
 }

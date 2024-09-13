@@ -63,7 +63,7 @@ export class DepartmentsService {
                 throw new DepartmentNotFoundException(uuid);
             }
 
-            return department;
+            return new ResponseDepartmentDTO(department);
         } catch (error) {
             throw error;
         }
