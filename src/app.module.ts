@@ -12,7 +12,7 @@ import { ConfigurationService } from './modules/configuration/configuration.serv
 
 @Module({
     imports: [
-        ConfigurationModule, // Import ConfigurationModule
+        ConfigurationModule,
         PassportModule,
         TypeOrmModule.forRootAsync({
             imports: [ConfigurationModule],
